@@ -53,13 +53,48 @@ This file is the **single source of truth** for the course. Keep it current with
   The ramp tapers smoothly within each tier too, so Day 15 gets less help than Day 1. If the user
   asks for more help than their current level, give it, but say so and note it in `Weak Spots` when it
   points to a gap. If they're clearly ahead, back off faster.
-- The user is **not a beginner**. They have read plenty of Go and built a gossip-based distributed cache
-  (fail-open, thundering-herd mitigation) about a year ago, and have written no Go since. Don't spoon-feed
-  them; push depth and idiom.
+- **The user's profile** (revised on Day 1):
+  - **Algorithms and logic: strong.** They practice DSA regularly. Don't over-explain algorithms; explain the
+    Go side (syntax, idioms, the standard library, memory behavior).
+  - **Go syntax and standard-library recall: rusty.** They built a gossip-based distributed cache (fail-open,
+    thundering-herd mitigation) over a year ago and have written no Go since, and say they've forgotten
+    most of it. Re-teach syntax as it comes up and don't assume they remember it. Recall should come back
+    within the first 2–3 weeks; check how it's going in reviews.
+  - **Testing: brand new.** They had never written a unit test before Day 1. Teach it as its own thread
+    that builds up over the course (see `Testing thread` below). Explain *why* each practice exists, not
+    just the syntax.
+- **Testing thread:** introduce one testing skill per project and require it from then on:
+  Day 1 table-driven tests and `t.Run` subtests → P01 `t.Helper`, testing through the public API vs internals,
+  benchmarks → Day 5 / P02 fuzzing and oracle (reference implementation) tests → P03 example tests (`ExampleXxx`), coverage
+  (`-cover`) → Phase 2 `-race`, `goleak`, testing with timeouts and `context`, avoiding flaky tests → Phase 3
+  `httptest`/`net.Pipe`, golden files, integration tests → Phase 4 fake networks, fault injection →
+  Capstone chaos tests and linearizability checks.
+- **For git, shell, and general developer tooling, treat the user as a fresher.** Go remains the main focus,
+  but becoming a job-ready developer includes the tooling around it. This applies for all 90 days and does
+  not follow the help ramp:
+  - Explain commands when they come up: what each part and flag does, what it changes (files, `.git/`,
+    the remote), and how to check the result.
+  - **Git: have the user type the commands about 75% of the time.** Give the command or describe the goal
+    ("stage only the test file, then commit"), let them run it, then check the result together
+    (`git status`, `git log --oneline`). As they improve, move from giving exact commands to describing the
+    goal only. Claude runs git itself only for the other ~25% (tedious or risky operations, or when the user
+    asks), and says what it ran and why.
+  - **Bash and Python scripts:** use judgment. Have the user write or run simple, instructive ones (loops,
+    pipes, `grep`/`sed`/`find`, small helper scripts). Claude can handle long or throwaway ones, but should
+    explain the non-obvious lines.
+  - Explain under-the-hood mechanics when relevant (e.g. refs and objects in git, PATH and environment
+    variables, exit codes, file permissions). Point out mistakes that are easy to make and hard to undo
+    (e.g. `push --force`, `reset --hard`, `rm -rf`, committing secrets).
+  - Record tooling gaps in `Weak Spots` too.
 - **Every project needs** tests (table-driven), `go test -race` passing, `go vet` + `staticcheck` clean,
   and benchmarks wherever performance is part of the point.
 - **Code reviews** focus on: idiomatic Go, error handling, API design (small interfaces, "accept
   interfaces, return structs"), concurrency correctness (races, leaks, who closes channels), and tests.
+- **Copilot (training wheels):** the user has Copilot on in the editor for now. It's allowed through Day 15
+  for boilerplate and syntax recall, but never for katas (which are no-LLM), and they must be able to explain
+  any suggestion they accept. Around Day 16 (tier B), check whether it's off, and nudge if not. In reviews,
+  watch for code that looks like it was accepted without being understood (e.g. the `golang.org/x/exp/slices`
+  auto-import on Day 1), and ask the user to explain it.
 - **Quiz the user.** End each concept day with 2–3 questions they answer without looking anything up.
 - **Weekends:** reading, plus a **no-LLM kata** (rebuild something from that week from memory).
 - Point the user to primary sources (the Go spec, the Go blog, papers) over summaries. Also explain the
@@ -112,7 +147,9 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 - **Phase:** 1 (Idiomatic Go and data structures)
 - **Done:** SSH, GitHub account and git identity set up. Repo cloned. The mechanics were explained to the user.
   Go 1.27.1, staticcheck and golangci-lint installed. `go.mod` initialized.
-- **Next up:** first commit and push, the Effective Go reading, the Day 1 kata, and the Day 1 quiz.
+- **Next up:** the Effective Go reading, the Day 1 kata (`katas/day01-warmup/`), and the Day 1 quiz.
+  First two commits are pushed (d1f5ff7, 2b95c41).
+- **Open git questions for the user:** `git status` before and after staging; why `-u` wasn't needed the second time.
 - **Schedule:** on track
 
 ---
@@ -264,7 +301,11 @@ Legend: ⬜ not started · 🟡 in progress · ✅ accepted
 ## Weak Spots
 _(Concepts the user keeps struggling with. Bring them back in katas and reviews until they're solid.)_
 
-- none yet
+- Tooling auto-imports: Copilot or the editor pulled in `golang.org/x/exp/slices` instead of the standard library's `slices`
+  (Day 1). Read the import block carefully.
+- Pointer/index bookkeeping in linked structures: overwrote a field before reading it (LRU tail, Day 2).
+  Practice: trace each update on paper, or save the old values into locals first.
+- Missing map key → zero value: the LRU's reverseIndex lookup silently returned 0 (Day 2).
 
 ---
 
@@ -276,11 +317,26 @@ _(Dated record of every change to the schedule and why.)_
   Phase 1, minimal in the capstone (see Help ramp).
 - 2026-09-29: The user adjusted the help ramp to Days 1–15 / 16–22 / 23–35 / 36–70 / 71–90, keyed by day
   rather than phase, so hands-on help lasts longer (through Day 15) and light help runs into capstone M2.
+- 2026-09-29: The user is using Copilot as training wheels, allowed through about Day 15, never for katas, and
+  plans to turn it off in a few weeks.
+- 2026-09-29: Revised the user's profile: strong at algorithms, rusty on Go syntax, new to testing. Added a
+  Testing thread that builds up across the projects.
+- 2026-09-29: Added a tooling-mentorship rule. For git and shell the user is treated as a fresher: explain
+  commands, have the user run git about 75% of the time, and use judgment for bash/python. This lasts all
+  90 days and doesn't follow the help ramp.
 
 ---
 
 ## Progress Log
 _(Newest first. One dated line per update: what was done, what was weak, notable review points.)_
 
+- 2026-09-30 (Day 2): Extra kata: a flat-array LRU (`katas/day01-warmup/warmup_lru.go`). The user's version panicked on
+  the first Put (wrong slot index), lost the tail when moving it (overwrote prev before reading it), and never filled
+  the reverse map (missing key read as zero, so it deleted key 0). At the user's request, Claude rewrote it with
+  unlink/pushFront helpers and a keys[] array, and verified it with probes and a random oracle in the scratchpad.
+  **The user still owes the LRU tests.** Lessons: copied logic copies bugs; read a map with `v, ok`; untested
+  code isn't known to work.
 - 2026-09-29 (Day 1): Course planned. Set up the personal GitHub account and SSH alias, and the includeIf git
   identity. Cloned gocamp and explained SSH authentication vs git commit identity. Go is not installed yet.
+- 2026-09-29 (Day 1): Installed Go 1.27.1 and the linters and made the first 2 commits. Taught: unborn branches, and `diff A..B`
+  (snapshots) vs `log A..B` (commits) vs `diff A...B` (changes since the merge base). Nudged toward the imperative mood in commit messages.
