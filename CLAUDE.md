@@ -30,7 +30,11 @@ This file is the **single source of truth** for the course. Keep it current with
    before cutting Raft or sharding.
 6. **Track weaknesses:** add recurring mistakes or shaky concepts to `Weak Spots` and bring them back
    in later katas and reviews until they stop recurring, then remove them.
-7. Make small, precise edits. Don't rewrite unrelated sections. Keep this file readable at a glance.
+7. **Keep `go_notes.md` up to date:** whenever Claude drops a factoid, explains a Go concept, or shows a useful
+   signature or idiom, add it to the right section of `go_notes.md` (or add a new section and link it from
+   Contents). Also update it whenever the user asks. Keep it in documentation style: headings, short bullets,
+   runnable snippets, and no chat tone.
+8. Make small, precise edits. Don't rewrite unrelated sections. Keep this file readable at a glance.
 
 ---
 
@@ -95,8 +99,17 @@ This file is the **single source of truth** for the course. Keep it current with
   any suggestion they accept. Around Day 16 (tier B), check whether it's off, and nudge if not. In reviews,
   watch for code that looks like it was accepted without being understood (e.g. the `golang.org/x/exp/slices`
   auto-import on Day 1), and ask the user to explain it.
-- **Quiz the user.** End each concept day with 2–3 questions they answer without looking anything up.
+- **Quizzes: only on what has been taught.** Quiz the user (2–3 questions, from memory) only on concepts
+  already covered in a lesson. **Present deep internals as factoids instead:** short explained
+  "did you know" notes with a runnable example and no question attached. Examples are slice aliasing and
+  cap, interfaces holding nil pointers, map growth, and escape analysis. They can turn into quiz questions
+  later, once the concept has been taught and used in a project. Keep quizzes encouraging and aimed at the
+  user's current level. (The user asked for this on Day 2: internals questions asked before teaching
+  were discouraging.)
 - **Weekends:** reading, plus a **no-LLM kata** (rebuild something from that week from memory).
+- **Keep dropping factoids.** Short "did you know" notes about Go's design, history, internals, and
+  idioms, even when the user has read the topic before. Repetition helps them and they enjoy it. Don't
+  apologize for repeating things.
 - Point the user to primary sources (the Go spec, the Go blog, papers) over summaries. Also explain the
   underlying mechanics of any tooling that comes up (git, ssh, the Go toolchain) when it's relevant; the
   user wants to understand how things work under the hood.
@@ -107,6 +120,7 @@ This file is the **single source of truth** for the course. Keep it current with
 
 - One Go module at the root: `github.com/Noobmaster-IIIT/gocamp`, so the capstone can import earlier
   project packages.
+- `go_notes.md` holds the user's Go reference notes (stdlib cheat sheet and factoids). Claude maintains it.
 - Warm-up katas go in `katas/dayNN-<name>/`.
 - Mini projects go in `pNN-<name>/` (for example `p01-lru/`). Each has its own thin `CLAUDE.md`.
 - The capstone goes in `redis-cluster/`.
@@ -147,9 +161,14 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 - **Phase:** 1 (Idiomatic Go and data structures)
 - **Done:** SSH, GitHub account and git identity set up. Repo cloned. The mechanics were explained to the user.
   Go 1.27.1, staticcheck and golangci-lint installed. `go.mod` initialized.
-- **Next up:** the Effective Go reading, the Day 1 kata (`katas/day01-warmup/`), and the Day 1 quiz.
-  First two commits are pushed (d1f5ff7, 2b95c41).
-- **Open git questions for the user:** `git status` before and after staging; why `-u` wasn't needed the second time.
+- **Next up:** the user is reading Effective Go (reached interfaces; reading about channels and goroutines,
+  hands-on concurrency waits until Day 11). Next session is DSA practice: a PQ problem with `container/heap`
+  (as the interfaces lesson), a hand-written generic `Heap[T]` (a precursor to P04), and a deque as a ring
+  buffer (suggested: LC 23/703, then 239). They learned sets with `map[int]bool`; mentioned `map[int]struct{}`.
+  A Tour of Go was dropped in favor of Effective Go plus problem practice.
+- **Already covered:** comma-ok (maps, type assertions), composite literals and `struct{}{}`,
+  table-driven tests and `t.Run`, pointer vs value receivers, int sizes and explicit integer conversion.
+  (Repeating these is welcome. The user likes seeing them again, so keep bringing them up.)
 - **Schedule:** on track
 
 ---
@@ -172,9 +191,9 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 Reading: Effective Go · "Go Slices: usage and internals" (Go blog) · *100 Go Mistakes* ch. 2–4 and 7 ·
 "Error handling and Go" and "Working with Errors in Go 1.13" (Go blog) · the generics tutorial on go.dev
 
-- [ ] **Day 1 (Sep 29):** Set up the toolchain and module. Read Effective Go. Kata: in-place slice reverse and
-  a generic `Stack[T]` with table-driven tests. Quiz: (a) why `append` inside a function can silently change,
-  or fail to change, the caller's slice; (b) when an interface holding a nil pointer is non-nil.
+- [x] **Day 1 (Sep 29):** Set up the toolchain and module. Read Effective Go. Kata: in-place slice reverse and
+  a generic `Stack[T]` with table-driven tests (done, plus an extra flat-array LRU). Factoids covered: slice
+  aliasing and cap; an interface holding a nil pointer is non-nil.
 - [ ] **Day 2 (Sep 30):** Review the kata. Deep dive: slice headers and aliasing, map internals (buckets,
   growth, random iteration order), struct layout and padding, value vs pointer receivers and method sets,
   interface internals (itab, dynamic type/value), embedding and method promotion.
@@ -303,9 +322,12 @@ _(Concepts the user keeps struggling with. Bring them back in katas and reviews 
 
 - Tooling auto-imports: Copilot or the editor pulled in `golang.org/x/exp/slices` instead of the standard library's `slices`
   (Day 1). Read the import block carefully.
+- Linked/ring structures: think through what happens at the boundaries on the *pop* side too (a block runs empty,
+  head == tail when full); the push side was right (Day 4).
 - Pointer/index bookkeeping in linked structures: overwrote a field before reading it (LRU tail, Day 2).
   Practice: trace each update on paper, or save the old values into locals first.
 - Missing map key → zero value: the LRU's reverseIndex lookup silently returned 0 (Day 2).
+- Git's three areas (working tree / index / HEAD) and what `git status` shows in each (Day 2 quiz).
 
 ---
 
@@ -313,6 +335,7 @@ _(Concepts the user keeps struggling with. Bring them back in katas and reviews 
 _(Dated record of every change to the schedule and why.)_
 
 - 2026-09-29: Plan created.
+- 2026-09-30: Changed quizzes to cover only taught material. Deep internals are now presented as explained factoids, not questions.
 - 2026-09-29: Coaching style changed from "reviewer only" to "tutor with tapering help": very hands-on in
   Phase 1, minimal in the capstone (see Help ramp).
 - 2026-09-29: The user adjusted the help ramp to Days 1–15 / 16–22 / 23–35 / 36–70 / 71–90, keyed by day
@@ -330,6 +353,17 @@ _(Dated record of every change to the schedule and why.)_
 ## Progress Log
 _(Newest first. One dated line per update: what was done, what was weak, notable review points.)_
 
+- 2026-10-02 (Day 4): The user built two generic deques themselves (a ring buffer, and an unrolled linked list of
+  1024-slot blocks, like std::deque), behind a `Deque[T]` interface. It was work in progress. At their request, Claude
+  fixed it and explained each fix. Bugs found: `resize`/`Resize` name mismatch (compile error); resize looped `i != tail`,
+  which copies nothing when full (head == tail); popped slots not zeroed in the ring; linked PopBack read `tail`
+  (off by one); pops never moved to or unlinked the next block (panic at index 1024); the first block started at 0, so
+  PushFront allocated immediately; an unused `blocks` slice. Verified with a randomized oracle in the scratchpad.
+  NOTE: the user was annoyed by a "doesn't compile" framing. WIP code is expected; don't phrase it as a failure.
+- 2026-09-30 (Day 2): Day 1 quiz. `-u`/upstream: correct. `git status` before and after staging: wrong (said "clean"
+  before staging). The `append` aliasing answer was half right (knew the header is copied, missed the shared backing array
+  and cap). Interface holding a nil pointer: didn't know. Both internals questions came too early; they were
+  turned into factoids and the quiz rule was changed. CLAUDE.md committed (ef16903).
 - 2026-09-30 (Day 2): Extra kata: a flat-array LRU (`katas/day01-warmup/warmup_lru.go`). The user's version panicked on
   the first Put (wrong slot index), lost the tail when moving it (overwrote prev before reading it), and never filled
   the reverse map (missing key read as zero, so it deleted key 0). At the user's request, Claude rewrote it with
