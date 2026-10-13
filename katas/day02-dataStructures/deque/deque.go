@@ -306,7 +306,6 @@ func (dq *LinkedListDeque[T]) Size() int {
 	return dq.size
 }
 
-// IsEmpty reports whether the deque has no elements.
 func (dq *LinkedListDeque[T]) IsEmpty() bool {
 	return dq.size == 0
 }

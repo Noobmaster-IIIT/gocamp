@@ -17,17 +17,21 @@ distributed systems on their own.
 This file is the **single source of truth** for the course. Keep it current without being asked:
 
 1. **At the start of every session:** read `Current Status` and `Progress Log` and work out today's day
-   number from the date. If the user is ahead of or behind the plan, say so in one line.
+   number from the date. Don't comment on the schedule by default (see the pace rule below).
 2. **When the user reports progress** (for example "Day 3 done", code submitted, a question answered, a
    project finished): update `Current Status`, tick the item in the `Detailed Schedule`, and add a dated line
    to `Progress Log`. The line should say what was done, what was weak, and review findings worth remembering.
 3. **When a project is assigned:** create its folder and a thin `CLAUDE.md` inside it, using the template
    below, and mark it 🟡 in `Project Index`.
 4. **When a project is reviewed and accepted:** mark it ✅ in `Project Index` and note any key lessons.
-5. **If the schedule slips by more than 2 days, or the user is clearly ahead:** propose a concrete re-plan
-   (compress, cut, or add stretch work). Once the user agrees, update the dates in `Detailed Schedule`
-   and record the change in `Plan Changes`. Protect the capstone. Cut stretch goals and optional reading
-   before cutting Raft or sharding.
+5. **Pace rule: fun first, timeline second** (the user asked for this on Day 15). This is a journey, not a deadline.
+   Don't push the schedule, nag, or frame things around dates. Only when there's a **sustained** slowdown (about a
+   week or more with little progress, or the projected finish slipping by more than about 7 days) mention it
+   once, neutrally, with the number: *"At the current pace the capstone would finish around <date> (~N days
+   later than planned)."* Then let the user decide. Offer a re-plan only if they want one. Record agreed changes
+   in `Plan Changes` and update the dates in `Detailed Schedule`. When cutting, protect the capstone: drop stretch
+   goals and optional reading before Raft or sharding. Watch for burnout signals (frustration, "chore" feelings)
+   and lighten up: shorter tasks, more fun side quests, more factoids.
 6. **Track weaknesses:** add recurring mistakes or shaky concepts to `Weak Spots` and bring them back
    in later katas and reviews until they stop recurring, then remove them.
 7. **Keep `go_notes.md` up to date:** whenever Claude drops a factoid, explains a Go concept, or shows a useful
@@ -107,6 +111,9 @@ This file is the **single source of truth** for the course. Keep it current with
   user's current level. (The user asked for this on Day 2: internals questions asked before teaching
   were discouraging.)
 - **Weekends:** reading, plus a **no-LLM kata** (rebuild something from that week from memory).
+- **The user sometimes picks a longer approach on purpose, to practice** (e.g. a recursive heap-invariant checker on
+  Day 15 to write their first recursive Go function). Present simpler alternatives as optional ("FYI, there's also…"),
+  not as fixes, unless the code is actually wrong.
 - **Keep dropping factoids.** Short "did you know" notes about Go's design, history, internals, and
   idioms, even when the user has read the topic before. Repetition helps them and they enjoy it. Don't
   apologize for repeating things.
@@ -157,19 +164,17 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 
 ## Current Status
 
-- **Today:** Day 1 (2026-09-29)
+- **Today:** Day 14 (2026-10-12). Last session was Day 4 (Oct 2), so there was a 10-day gap.
 - **Phase:** 1 (Idiomatic Go and data structures)
 - **Done:** SSH, GitHub account and git identity set up. Repo cloned. The mechanics were explained to the user.
   Go 1.27.1, staticcheck and golangci-lint installed. `go.mod` initialized.
-- **Next up:** the user is reading Effective Go (reached interfaces; reading about channels and goroutines,
-  hands-on concurrency waits until Day 11). Next session is DSA practice: a PQ problem with `container/heap`
-  (as the interfaces lesson), a hand-written generic `Heap[T]` (a precursor to P04), and a deque as a ring
-  buffer (suggested: LC 23/703, then 239). They learned sets with `map[int]bool`; mentioned `map[int]struct{}`.
-  A Tour of Go was dropped in favor of Effective Go plus problem practice.
+- **Next up:** finish LC 703 with `Heap[T]` (the user is doing this on their own), plus the open heap review items
+  (move the code to `heap.go`, zero the slot in Pop, pointer receiver on Len, add Peek). Then **Day 16: goroutines,
+  channels, select**.
 - **Already covered:** comma-ok (maps, type assertions), composite literals and `struct{}{}`,
   table-driven tests and `t.Run`, pointer vs value receivers, int sizes and explicit integer conversion.
   (Repeating these is welcome. The user likes seeing them again, so keep bringing them up.)
-- **Schedule:** on track
+- **Schedule:** relaxed; see the pace rule. Re-planned on Day 15. Phase 2 starts Day 16 (Oct 14). The capstone shrinks from 40 to 35 days; the end date (Dec 27) is unchanged.
 
 ---
 
@@ -177,129 +182,100 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 
 | Phase | Days | Dates | Focus | Projects |
 |---|---|---|---|---|
-| 1 | 1–10 | Sep 29 – Oct 8 | Idiomatic Go and data structures | P01–P04 |
-| 2 | 11–22 | Oct 9 – Oct 20 | Concurrency | P05–P08 |
-| 3 | 23–35 | Oct 21 – Nov 2 | Systems programming and networking | P09–P13 |
-| 4 | 36–50 | Nov 3 – Nov 17 | gRPC, distributed fundamentals, Raft | P14–P17 |
-| 5 | 51–90 | Nov 18 – Dec 27 | Capstone: mini Redis cluster | M0–M5 |
-
+| 1 | 1–15 | Sep 29 – Oct 13 | Idiomatic Go and data structures (done; DSA continues as self-study) | LRU, deque, heap katas |
+| 2 | 16–27 | Oct 14 – Oct 25 | Concurrency | P05–P08 (+ TCP echo bridge) |
+| 3 | 28–40 | Oct 26 – Nov 7 | Systems programming and networking (`net`) | P09–P13 |
+| 4 | 41–55 | Nov 8 – Nov 22 | gRPC, distributed fundamentals, Raft | P14–P17 |
+| 5 | 56–90 | Nov 23 – Dec 27 | Capstone: mini Redis cluster | M0–M5 |
 ---
 
 ## Detailed Schedule
 
-### Phase 1: Idiomatic Go and data structures (Days 1–10)
-Reading: Effective Go · "Go Slices: usage and internals" (Go blog) · *100 Go Mistakes* ch. 2–4 and 7 ·
-"Error handling and Go" and "Working with Errors in Go 1.13" (Go blog) · the generics tutorial on go.dev
+### Phase 1: Idiomatic Go and data structures (Days 1–15) ✅
+Condensed on Day 15 at the user's request. The rest of the DSA work (skip list, incremental-rehash dict) is
+**self-study**, not coached. Reading: Effective Go (in progress).
 
-- [x] **Day 1 (Sep 29):** Set up the toolchain and module. Read Effective Go. Kata: in-place slice reverse and
-  a generic `Stack[T]` with table-driven tests (done, plus an extra flat-array LRU). Factoids covered: slice
-  aliasing and cap; an interface holding a nil pointer is non-nil.
-- [ ] **Day 2 (Sep 30):** Review the kata. Deep dive: slice headers and aliasing, map internals (buckets,
-  growth, random iteration order), struct layout and padding, value vs pointer receivers and method sets,
-  interface internals (itab, dynamic type/value), embedding and method promotion.
-- [ ] **Days 3–4 (Oct 1–2):** **P01 generic LRU cache.** Build it on `container/list`, then on a hand-rolled
-  doubly linked list. `Get/Put/Len`, eviction callback. Benchmark both.
-- [ ] **Day 5 (Oct 3):** Errors (sentinel vs typed, wrapping, `errors.Is/As/Join`), generics (constraints,
-  when *not* to use them), package design, fuzz tests, `testing.B` and `benchstat`.
-- [ ] **Days 6–7 (Oct 4–5):** **P02 skip list (sorted set).** `ZADD/ZREM/ZSCORE/ZRANK/ZRANGE`, random
-  levels, span tracking for rank. Fuzz-test it against a sorted-slice oracle.
-- [ ] **Days 8–9 (Oct 6–7):** **P03 dict with incremental rehashing.** Two tables, moving a few buckets on each
-  operation, growing and shrinking, a safe iterator. Benchmark against the built-in map.
-- [ ] **Day 10 (Oct 8):** **P04 TTL expirer.** A `container/heap` min-heap, lazy plus active (sampled) expiry
-  like Redis. Phase 1 review and a no-LLM kata (rebuild the LRU from memory).
+- [x] **Day 1 (Sep 29):** Toolchain, module, git/SSH setup. Kata: `Reverse`, `Stack[T]`, first table-driven tests.
+- [x] **Day 2 (Sep 30):** Flat-array LRU (LeetCode 146, accepted). Factoids: slice aliasing, interfaces holding nil.
+- [x] **Day 4 (Oct 2):** Two generic deques (ring buffer, unrolled block list) behind a `Deque[T]` interface.
+- [x] **Days 14–15 (Oct 12–13):** `container/heap` lesson, then a generic `Heap[T]` with tests written first (random test
+  and recursive invariant checker). LC 703 in progress.
 
-### Phase 2: Concurrency (Days 11–22)
+### Phase 2: Concurrency (Days 16–27)
 Reading: the Go Memory Model · "Go Concurrency Patterns: Pipelines and cancellation" and "Go Concurrency
 Patterns: Context" (Go blog) · *Concurrency in Go* (Cox-Buday) ch. 3–4 · Rob Pike's "Concurrency is not
 Parallelism" talk · the `errgroup` and `singleflight` docs
 
-- [ ] **Day 11 (Oct 9):** The GMP scheduler, goroutine cost, channel semantics (unbuffered handoff,
-  buffered, closing rules, nil channels), `select` patterns (timeouts, default, disabling cases).
-- [ ] **Day 12 (Oct 10):** `sync` (Mutex, RWMutex, Once, Cond, WaitGroup, Pool), `sync/atomic`, the memory
-  model and happens-before, the race detector.
-- [ ] **Days 13–14 (Oct 11–12):** **P05 sharded concurrent map.** N shards with RWMutexes, integrated with the
-  P04 TTL. Benchmark against `sync.Map` and a single mutex under read-heavy and write-heavy loads. This
-  becomes the capstone's storage engine.
-- [ ] **Day 15 (Oct 13):** `context` in depth (cancellation trees, deadlines, `WithCancelCause`,
-  `AfterFunc`, why values are for request-scoped data only), `errgroup`, `singleflight`.
-- [ ] **Days 16–17 (Oct 14–15):** **P06 pub/sub broker.** Redis `PUBLISH/SUBSCRIBE/UNSUBSCRIBE`, pattern
-  subscriptions, where slow subscribers can't block publishers (a bounded buffer plus a drop or disconnect policy).
-- [ ] **Days 18–19 (Oct 16–17):** **P07 thundering herd, revisited.** Rebuild the old cache-miss path:
-  `singleflight`, per-request `context` timeouts, a fail-open fallback, and a load test showing requests
-  to the backing store drop from N to 1.
-- [ ] **Days 20–21 (Oct 18–19):** **P08 bounded job runner.** Pipelines, fan-out/in, a semaphore, a rate limiter,
-  errors sent over channels, cancellation, per-task deadlines, graceful shutdown. Prove there are no leaks with `goleak`.
-- [ ] **Day 22 (Oct 20):** Phase 2 review. No-LLM kata: a worker pool with cancellation, from memory.
+- [ ] **Day 16 (Oct 14):** The GMP scheduler, goroutine cost, channel semantics (unbuffered handoff, buffered, closing
+  rules, nil channels), `select` patterns (timeouts, default, disabling cases).
+- [ ] **Day 17 (Oct 15):** `sync` (Mutex, RWMutex, Once, **Cond**, WaitGroup, Pool), `sync/atomic`, the memory model and
+  happens-before, the race detector.
+- [ ] **Days 18–19 (Oct 16–17):** **P05 sharded concurrent map with TTL.** N shards with RWMutexes. TTL expiry reuses the
+  Day 14 `Heap[T]` (the old P04 is folded in here): lazy expiry plus an active expiry goroutine. Benchmark against
+  `sync.Map` and a single mutex. This becomes the capstone's storage engine.
+- [ ] **Day 20 (Oct 18):** `context` in depth (cancellation trees, deadlines, `WithCancelCause`, `AfterFunc`, why values
+  are for request-scoped data only), `errgroup`, `singleflight`.
+- [ ] **Days 21–22 (Oct 19–20):** **P06 pub/sub broker.** Redis `PUBLISH/SUBSCRIBE/UNSUBSCRIBE`, pattern subscriptions,
+  where slow subscribers can't block publishers (a bounded buffer plus a drop or disconnect policy).
+- [ ] **Days 23–24 (Oct 21–22):** **P07 thundering herd, revisited.** `singleflight`, per-request `context` timeouts,
+  a fail-open fallback, and a load test showing requests to the backing store drop from N to 1.
+- [ ] **Days 25–26 (Oct 23–24):** **P08 bounded job runner.** Pipelines, fan-out/in, a semaphore, a rate limiter, errors sent
+  over channels, cancellation, graceful shutdown. Prove there are no leaks with `goleak`.
+- [ ] **Day 27 (Oct 25):** Phase 2 review. **Bridge to `net`:** a TCP echo server with one goroutine per connection, plus
+  context-driven graceful shutdown.
 
-### Phase 3: Systems programming and networking (Days 23–35)
+### Phase 3: Systems programming and networking (Days 28–40)
 Reading: "Build Your Own Redis" (build-your-own.org) · the Redis protocol spec (RESP2/RESP3) · the Kafka
 design docs ("Persistence" and "Efficiency") · *DDIA* ch. 3 · "Profiling Go Programs" (Go blog)
 
-- [ ] **Day 23 (Oct 21):** Composing `io.Reader/Writer`, `bufio`, `encoding/binary`, `io.Pipe`,
-  byte-slice reuse. Kata: a length-prefixed framing codec.
-- [ ] **Days 24–25 (Oct 22–23):** **P09 RESP parser and serializer.** Streaming parser over `bufio.Reader`,
-  all RESP2 types. Fuzz-tested, with low allocations (check with `-benchmem`).
-- [ ] **Days 26–28 (Oct 24–26):** **P10 single-node Redis.** A `net` TCP server, one goroutine per connection,
-  read/write deadlines, a command dispatch table, `GET/SET/DEL/EXISTS/EXPIRE/TTL/INCR/PUBLISH/SUBSCRIBE`,
-  graceful shutdown on SIGINT/SIGTERM. Must work with the real `redis-cli`.
-- [ ] **Days 29–30 (Oct 27–28):** **P11 AOF persistence.** Append on write, fsync policies
-  (always, everysec, no), replay on startup, background rewrite and compaction, handling a truncated tail.
-- [ ] **Days 31–33 (Oct 29–31):** **P12 mini-Kafka commit log.** Segmented files, an offset index,
-  append/read by offset, segment rollover and retention, CRC checks, crash-recovery tests. This is reused for Raft.
-- [ ] **Day 34 (Nov 1):** **P13 CLI client.** `cobra`, a REPL, pipelining, and a benchmark mode (a home-made
-  `redis-benchmark` reporting throughput and p50/p99).
-- [ ] **Day 35 (Nov 2):** Profile P10 with `pprof` (CPU, heap, goroutine, block), escape analysis
-  (`-gcflags=-m`), cut allocations. Phase 3 review.
+- [ ] **Day 28 (Oct 26):** Composing `io.Reader/Writer`, `bufio`, `encoding/binary`, `io.Pipe`, `net.Pipe` for tests.
+  Kata: a length-prefixed framing codec.
+- [ ] **Days 29–30 (Oct 27–28):** **P09 RESP parser and serializer.** Streaming over `bufio.Reader`, fuzz-tested,
+  with low allocations.
+- [ ] **Days 31–33 (Oct 29–31):** **P10 single-node Redis.** A `net` TCP server, read/write deadlines, a dispatch table,
+  `GET/SET/DEL/EXISTS/EXPIRE/TTL/INCR/PUBLISH/SUBSCRIBE`, graceful shutdown. Must work with the real `redis-cli`.
+- [ ] **Days 34–35 (Nov 1–2):** **P11 AOF persistence.** fsync policies, replay, rewrite/compaction, a truncated tail.
+- [ ] **Days 36–38 (Nov 3–5):** **P12 mini-Kafka commit log.** Segments, an offset index, rollover, CRCs, crash recovery.
+- [ ] **Day 39 (Nov 6):** **P13 CLI client.** `cobra`, a REPL, pipelining, a benchmark mode (p50/p99).
+- [ ] **Day 40 (Nov 7):** Profile P10 with `pprof`, escape analysis, cut allocations. Phase 3 review.
 
-### Phase 4: gRPC, distributed fundamentals, Raft (Days 36–50)
+### Phase 4: gRPC, distributed fundamentals, Raft (Days 41–55)
 Reading: the Raft paper, extended version (read twice) · the Raft visualization at thesecretlivesofdata.com
 · *DDIA* ch. 5, 6, 8, 9 · the Redis Cluster spec · the MIT 6.5840 Raft lecture notes and lab 3 guide · the
-"Students' Guide to Raft" (thesquareplanet.com) · the grpc-go docs (deadlines, interceptors, streaming)
+"Students' Guide to Raft" · the grpc-go docs (deadlines, interceptors, streaming)
 
-- [ ] **Days 36–37 (Nov 3–4):** Protobuf and `buf`/`protoc`, gRPC unary and streaming calls, interceptors
-  (logging, metrics), propagating deadlines and cancellation, status codes. Kata: an echo service with a
-  streaming heartbeat.
-- [ ] **Days 38–39 (Nov 5–6):** **P14 partitioning.** A consistent hash ring with virtual nodes, *and*
-  Redis-style 16,384 hash slots (CRC16, hash tags `{...}`). Measure how keys move when nodes are added. Write
-  up which one the capstone will use and why.
-- [ ] **Days 40–42 (Nov 7–9):** **P15 gRPC membership and heartbeats.** Heartbeat streams, timeout-based
-  failure detection (optionally phi accrual), versioned membership views, handling network partitions.
-  Compare this with the user's old gossip design.
-- [ ] **Day 43 (Nov 10):** A close reading of the Raft paper. The user writes a one-page state-machine summary
-  (roles, RPCs, the invariants in Figure 2) and Claude reviews it.
-- [ ] **Days 44–46 (Nov 11–13):** **P16 Raft, part 1: leader election.** Terms, randomized timeouts,
-  RequestVote, heartbeats through AppendEntries. A test harness with a simulated network that can partition
-  and drop or delay messages.
-- [ ] **Days 47–50 (Nov 14–17):** **P17 Raft, part 2: log replication and persistence.** AppendEntries
-  consistency checks, commit index, apply channel, persisting state on the P12 log, restart recovery.
-  Tests pass under partitions and restarts. *This is the hardest part of the course, so protect this time.*
+- [ ] **Days 41–42 (Nov 8–9):** Protobuf/`buf`, gRPC unary and streaming calls, interceptors, deadlines, status codes.
+  Kata: an echo service with a streaming heartbeat.
+- [ ] **Days 43–44 (Nov 10–11):** **P14 partitioning.** A consistent hash ring with virtual nodes *and* 16,384 hash slots
+  (CRC16, `{...}` hash tags). Measure key movement and choose one for the capstone.
+- [ ] **Days 45–47 (Nov 12–14):** **P15 gRPC membership and heartbeats.** Failure detection, versioned views, partitions.
+  Compare with the user's old gossip design.
+- [ ] **Day 48 (Nov 15):** Close reading of the Raft paper. The user writes a one-page Figure 2 summary for review.
+- [ ] **Days 49–51 (Nov 16–18):** **P16 Raft, part 1: leader election**, with a simulated, partitionable network.
+- [ ] **Days 52–55 (Nov 19–22):** **P17 Raft, part 2: log replication and persistence** on the P12 log. *This is the
+  hardest part of the course, so protect this time.*
 
-### Phase 5: Capstone, mini Redis cluster (Days 51–90), in `redis-cluster/`
-- [ ] **M0, Days 51–53 (Nov 18–20):** Design doc covering architecture, keyspace partitioning (from P14), the
-  replication model (one Raft group per shard), failure model, client routing, and what's out of scope.
-  **Claude reviews it before any code is written.**
-- [ ] **M1, Days 54–60 (Nov 21–27):** Sharded cluster: nodes own slot ranges, `MOVED`/`ASK` redirects,
-  a client and CLI that know the cluster layout, reusing P05/P09/P10.
-- [ ] **M2, Days 61–70 (Nov 28 – Dec 7):** A Raft group per shard over gRPC (P17): replicated writes,
-  linearizable reads (through the leader, or ReadIndex), leader failover, heartbeats (P15).
-- [ ] **M3, Days 71–77 (Dec 8–14):** Cluster config and membership service: adding and removing nodes,
-  moving slots (migration with `ASK`), a versioned config.
-- [ ] **M4, Days 78–84 (Dec 15–21):** Admin CLI (P13), metrics (Prometheus), `pprof` endpoints, graceful
-  shutdown, chaos tests (kill a leader, partition the network, restart nodes).
-- [ ] **M5, Days 85–90 (Dec 22–27):** Linearizability checks with `porcupine`, a final write-up and
-  retrospective. Stretch goals: `MULTI/EXEC` within a shard, then cross-shard transactions with 2PC.
+### Phase 5: Capstone, mini Redis cluster (Days 56–90), in `redis-cluster/`
+- [ ] **M0, Days 56–57 (Nov 23–24):** Design doc (architecture, partitioning, one Raft group per shard, failure model,
+  routing, non-goals). **Claude reviews it before any code is written.**
+- [ ] **M1, Days 58–63 (Nov 25–30):** Sharded cluster: slot ownership, `MOVED`/`ASK`, a client and CLI that know the
+  cluster layout.
+- [ ] **M2, Days 64–72 (Dec 1–9):** A Raft group per shard over gRPC: replicated writes, linearizable reads, failover.
+- [ ] **M3, Days 73–78 (Dec 10–15):** Cluster config/membership: adding and removing nodes, moving slots, a versioned config.
+- [ ] **M4, Days 79–84 (Dec 16–21):** Admin CLI, metrics, `pprof`, graceful shutdown, chaos tests.
+- [ ] **M5, Days 85–90 (Dec 22–27):** `porcupine` linearizability checks, final write-up. Stretch: `MULTI/EXEC`, 2PC.
 
 ---
 
 ## Project Index
-Legend: ⬜ not started · 🟡 in progress · ✅ accepted
+Legend: ⬜ not started · 🟡 in progress · ✅ accepted · ➖ dropped/merged
 
 | # | Folder | Status | Key lessons |
 |---|---|---|---|
-| P01 | p01-lru | ⬜ | |
-| P02 | p02-skiplist | ⬜ | |
-| P03 | p03-dict | ⬜ | |
-| P04 | p04-ttl | ⬜ | |
+| P01 | p01-lru | ✅ | Done as a kata (`katas/day01-warmup`, flat-array LRU, LC 146 accepted) |
+| P02 | p02-skiplist | ➖ | Dropped on Day 15: self-study |
+| P03 | p03-dict | ➖ | Dropped on Day 15: self-study |
+| P04 | p04-ttl | ➖ | Folded into P05 (TTL via the Day 14 `Heap[T]`) |
 | P05 | p05-shardmap | ⬜ | |
 | P06 | p06-pubsub | ⬜ | |
 | P07 | p07-herd | ⬜ | |
@@ -324,6 +300,8 @@ _(Concepts the user keeps struggling with. Bring them back in katas and reviews 
   (Day 1). Read the import block carefully.
 - Linked/ring structures: think through what happens at the boundaries on the *pop* side too (a block runs empty,
   head == tail when full); the push side was right (Day 4).
+- File placement: implementation went into a `_test.go` file twice (Day 1, Day 15). Code goes in `x.go`, tests in `x_test.go`.
+- Zeroing vacated slots on pop: missed in the ring deque (Day 4) and the heap (Day 15), despite the Stack lesson.
 - Pointer/index bookkeeping in linked structures: overwrote a field before reading it (LRU tail, Day 2).
   Practice: trace each update on paper, or save the old values into locals first.
 - Missing map key → zero value: the LRU's reverseIndex lookup silently returned 0 (Day 2).
@@ -335,6 +313,11 @@ _(Concepts the user keeps struggling with. Bring them back in katas and reviews 
 _(Dated record of every change to the schedule and why.)_
 
 - 2026-09-29: Plan created.
+- 2026-10-13 (Day 15): Pace rule: fun first and no timeline pressure. Only flag a sustained slowdown, once, as "at the current pace the project is delayed by ~N days".
+- 2026-10-13 (Day 15): **Re-plan, at the user's request.** The rest of the DSA projects were dropped (P02 skip list and P03 dict
+  become self-study; P04 TTL is folded into P05 using `Heap[T]`). Phase 1 closed. Phases 2–4 shifted +5 days (Phase 2 = Days
+  16–27). The capstone went from 40 to 35 days (M0–M4 trimmed by a day each); the end date is still Dec 27. Added a TCP echo
+  bridge to `net` at the end of Phase 2 because the user wants to get to `net` sooner. This also absorbs the 10-day gap.
 - 2026-09-30: Changed quizzes to cover only taught material. Deep internals are now presented as explained factoids, not questions.
 - 2026-09-29: Coaching style changed from "reviewer only" to "tutor with tapering help": very hands-on in
   Phase 1, minimal in the capstone (see Help ramp).
@@ -353,6 +336,14 @@ _(Dated record of every change to the schedule and why.)_
 ## Progress Log
 _(Newest first. One dated line per update: what was done, what was weak, notable review points.)_
 
+- 2026-10-13 (Day 15): **Solved LC 295 (Median from Data Stream)** with their own generic two-heap solution; all tests pass. The logic was correct; the issues were compile-level (duplicate heap in one package, `any` vs `cmp.Ordered`, unpacking `(T, bool)`, int vs float division). Learned: one package per directory.
+- 2026-10-13 (Day 15): The heap tests pass after fixing the `for`-init loop (after three unsaved-file confusions; auto-save recommended). The user wants to skip further DSA and move on to concurrency and `net`, so the course was re-planned.
+- 2026-10-13 (Day 15): Generic `Heap[T]` with tests written first (they skipped LC 703 for now). up/down are correct, and they
+  added an O(n) `makeHeap` on their own. Tests: push/pop, min vs max, a recursive invariant checker, and a seeded random test.
+  Issues: the implementation is in `kth_test.go` (second time code went in a _test file); the random test's `for got, ok := h.Pop(); ok; {}`
+  only pops once (the user had flagged it); Pop doesn't zero the vacated slot; mixed receivers (Len uses a value receiver);
+  Peek is missing; `min`/`max` shadow builtins.
+- 2026-10-12 (Day 14): Came back after a 10-day gap. Started the priority-queue lesson (`container/heap`, then a generic `Heap[T]`, with tests first). Proposed a re-plan.
 - 2026-10-02 (Day 4): The user built two generic deques themselves (a ring buffer, and an unrolled linked list of
   1024-slot blocks, like std::deque), behind a `Deque[T]` interface. It was work in progress. At their request, Claude
   fixed it and explained each fix. Bugs found: `resize`/`Resize` name mismatch (compile error); resize looped `i != tail`,
