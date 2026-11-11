@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QC State Flow</title>
+<style>
+  :root { --bg: #ffffff; --fg: #0f172a; --muted: #475569; --border: #e2e8f0; }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg);
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p  { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; margin-bottom: 16px; }
+  .legend span::before { content: ""; display: inline-block; width: 22px; height: 3px;
+                         margin-right: 6px; vertical-align: middle; background: var(--c); }
+  .wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .mermaid { min-width: 900px; }
+</style>
+</head>
+<body>
+  <h1>QC State Flow</h1>
+  <p>R = reviewer actions, L = lender actions. Scroll horizontally if the diagram is wider than the window.</p>
+  <div class="legend">
+    <span style="--c:#2563eb">Reviewer action</span>
+    <span style="--c:#ea580c">Lender action</span>
+    <span style="--c:#16a34a">Jazz / system</span>
+  </div>
+  <div class="wrap">
+<pre class="mermaid">
+flowchart TB
+  classDef st fill:#f8fafc,stroke:#334155,color:#0f172a
+  classDef done fill:#ecfdf5,stroke:#15803d,color:#14532d
+  classDef bad fill:#fef2f2,stroke:#b91c1c,color:#7f1d1d
+  classDef r fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,font-size:11px
+  classDef l fill:#ffedd5,stroke:#ea580c,color:#7c2d12,font-size:11px
+
+  subgraph G1["DRAFT"]
+    direction LR
+    r1["R: Issue · Dismiss"]:::r
+    l1["L: -"]:::l
+    DRAFT["Reviewer: Draft<br/>Lender: (not visible)"]:::st
+  end
+  subgraph G2["ISSUED"]
+    direction LR
+    r2["R: Clear"]:::r
+    l2["L: Rebut · Rebut+Docs · Acknowledge"]:::l
+    ISSUED["Reviewer: Awaiting Lender<br/>Lender: Action Required"]:::st
+  end
+  subgraph G3["MORE_INFO_REQUESTED"]
+    direction LR
+    r3["R: Clear"]:::r
+    l3["L: Rebut · Rebut+Docs · Acknowledge"]:::l
+    MORE["Reviewer: Awaiting Lender (round 2)<br/>Lender: More Info Requested"]:::st
+  end
+  subgraph G4["JAZZ_REVIEWING (new)"]
+    direction LR
+    r4["R: -"]:::r
+    l4["L: -"]:::l
+    JAZZ["Reviewer: Jazz Reviewing<br/>Lender: Under Review"]:::st
+  end
+  subgraph G5["RESPONDED"]
+    direction LR
+    r5["R: Uphold · Overturn · Request Info · Escalate · Clear · Add Docs"]:::r
+    l5["L: -"]:::l
+    RESP["Reviewer: Rebuttal Received<br/>Lender: Under Review"]:::st
+  end
+  subgraph G6["ACKNOWLEDGED (new)"]
+    direction LR
+    r6["R: Uphold · Clear"]:::r
+    l6["L: -"]:::l
+    ACK["Reviewer: Acknowledged<br/>Lender: Acknowledged"]:::st
+  end
+  subgraph G7["ESCALATED"]
+    direction LR
+    r7["R: Uphold · Overturn · Clear"]:::r
+    l7["L: -"]:::l
+    ESC["Reviewer: Escalated<br/>Lender: Under Review"]:::st
+  end
+  subgraph G8["UPHELD (was SUSTAINED)"]
+    direction LR
+    r8["R: Mark Cured"]:::r
+    l8["L: -"]:::l
+    UPHELD["Reviewer: Upheld<br/>Lender: Upheld · Correct It"]:::bad
+  end
+  subgraph G9["Closed in the lender's favour (terminal)"]
+    direction LR
+    r9["R: -"]:::r
+    l9["L: -"]:::l
+    OVER["Overturned<br/>(both sides)"]:::done
+    QCC["QC Cleared<br/>(both sides)"]:::done
+    JZC["Jazz Cleared<br/>(both sides)"]:::done
+    CURED["Cured<br/>(both sides)"]:::done
+  end
+
+  %% reviewer actions (blue) 0-15
+  DRAFT -->|Issue to Lender| ISSUED
+  DRAFT -->|Dismiss · never sent| QCC
+  ISSUED -->|Clear| QCC
+  MORE -->|Clear| QCC
+  RESP -->|Uphold| UPHELD
+  RESP -->|Overturn| OVER
+  RESP -->|Request More Info · round < max| MORE
+  RESP -->|Escalate| ESC
+  RESP -->|Clear| QCC
+  ACK -->|Uphold| UPHELD
+  ACK -->|Clear| QCC
+  ESC -->|Uphold| UPHELD
+  ESC -->|Overturn| OVER
+  ESC -->|Clear| QCC
+  UPHELD -->|Mark Cured| CURED
+  RESP -->|Add Documents| JAZZ
+  %% lender actions (orange) 16-20
+  ISSUED -->|Rebut · text| RESP
+  ISSUED -->|Rebut + Docs| JAZZ
+  ISSUED -->|Acknowledge| ACK
+  MORE -->|Rebut · text| RESP
+  MORE -->|Rebut + Docs| JAZZ
+  %% Jazz / system (green) 21-22
+  JAZZ -->|Jazz: documents clear it| JZC
+  JAZZ -->|Jazz: not cleared / error| RESP
+
+  linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  linkStyle 16,17,18,19,20 stroke:#ea580c,stroke-width:2px,color:#7c2d12
+  linkStyle 21,22 stroke:#16a34a,stroke-width:2px,color:#14532d
+</pre>
+  </div>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "default", securityLevel: "loose",
+                         flowchart: { htmlLabels: true, useMaxWidth: false } });
+  </script>
+</body>
+</html>
