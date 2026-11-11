@@ -114,6 +114,8 @@ This file is the **single source of truth** for the course. Keep it current with
 - **The user sometimes picks a longer approach on purpose, to practice** (e.g. a recursive heap-invariant checker on
   Day 15 to write their first recursive Go function). Present simpler alternatives as optional ("FYI, there's also…"),
   not as fixes, unless the code is actually wrong.
+- **Show the signature of every standard-library function used in an example** (e.g. `func ReadAll(r io.Reader) ([]byte, error)`).
+  The parameter types explain *why* a value can be passed (the user asked for this on Day 30).
 - **Keep dropping factoids.** Short "did you know" notes about Go's design, history, internals, and
   idioms, even when the user has read the topic before. Repetition helps them and they enjoy it. Don't
   apologize for repeating things.
@@ -129,6 +131,7 @@ This file is the **single source of truth** for the course. Keep it current with
   project packages.
 - `go_notes.md` holds the user's Go reference notes (stdlib cheat sheet and factoids). Claude maintains it.
 - Warm-up katas go in `katas/dayNN-<name>/`.
+- Side quests go in `sidequests/<name>/`.
 - Mini projects go in `pNN-<name>/` (for example `p01-lru/`). Each has its own thin `CLAUDE.md`.
 - The capstone goes in `redis-cluster/`.
 - Commit early and often. Use one commit per meaningful step, with messages in the imperative mood.
@@ -156,7 +159,7 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 - `github-personal` is an SSH host alias in `~/.ssh/config` that uses `~/.ssh/id_ed25519_personal`
   with `IdentitiesOnly yes`. Plain `github.com` is the **work** account (abhirup-jazzX). Never use it here.
 - Commit identity: `~/.gitconfig` has an `includeIf "gitdir:~/personal/"` rule that loads
-  `~/.gitconfig-personal`, which sets `abhirup.b@students.iit.ac.in`.
+  `~/.gitconfig-personal`, which sets `abhirup.b@students.iiit.ac.in`.
 - Before a push, check with `git config --show-origin user.email` and `git remote -v`.
 - Any new personal repo must be cloned with `git@github-personal:Noobmaster-IIIT/<repo>.git`.
 
@@ -164,13 +167,13 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 
 ## Current Status
 
-- **Today:** Day 14 (2026-10-12). Last session was Day 4 (Oct 2), so there was a 10-day gap.
+- **Today:** Day 29 (2026-10-27). Help tier C (guided).
 - **Phase:** 1 (Idiomatic Go and data structures)
 - **Done:** SSH, GitHub account and git identity set up. Repo cloned. The mechanics were explained to the user.
   Go 1.27.1, staticcheck and golangci-lint installed. `go.mod` initialized.
-- **Next up:** finish LC 703 with `Heap[T]` (the user is doing this on their own), plus the open heap review items
-  (move the code to `heap.go`, zero the slot in Pop, pointer receiver on Len, add Peek). Then **Day 16: goroutines,
-  channels, select**.
+- **Next up:** start of Day 16. **First, revisit the function-type-with-a-method adapter** (`GreeterFunc` /
+  `http.HandlerFunc`, in go_notes §4). It clicked after the Celsius vs GreeterFunc comparison (go_notes §4).
+  Quick recap only, then have them write their own adapter from scratch (no LLM). Then goroutines, channels, select.
 - **Already covered:** comma-ok (maps, type assertions), composite literals and `struct{}{}`,
   table-driven tests and `t.Run`, pointer vs value receivers, int sizes and explicit integer conversion.
   (Repeating these is welcome. The user likes seeing them again, so keep bringing them up.)
@@ -265,6 +268,29 @@ Reading: the Raft paper, extended version (read twice) · the Raft visualization
 - [ ] **M4, Days 79–84 (Dec 16–21):** Admin CLI, metrics, `pprof`, graceful shutdown, chaos tests.
 - [ ] **M5, Days 85–90 (Dec 22–27):** `porcupine` linearizability checks, final write-up. Stretch: `MULTI/EXEC`, 2PC.
 
+### Side quests (DSA, user-paced, no dates)
+Optional projects the user picked for fun (Day 16). They aren't in the main schedule and never count as falling behind.
+They live in `sidequests/<name>/` and get a thin `CLAUDE.md` when started. Coach them at the current help tier, and connect
+them to the main course where possible.
+
+- [ ] **SQ1 skip list** (`sidequests/skiplist/`). User's design (Day 21): levels ("lanes") of singly linked nodes, a doubly linked
+  bottom lane, a `map[K]*node` index for O(1) Get (Redis ZSET design), tombstone deletes, and an eventual lock-free version with
+  `atomic.Pointer`. Agreed **staged plan**, with concurrency learned alongside Phase 2:
+  1. Single-threaded generic skip list + map index + doubly linked bottom lane; oracle tests (`Set/Get/Delete/Range/Len`, stretch `Rank`).
+  2. `sync.RWMutex` wrapper; concurrent tests under `-race`; benchmarks.
+  3. Tombstones + ONE janitor goroutine fed by a channel; `context` shutdown (not a goroutine per delete).
+  4. Lock-free search/insert via `atomic.Pointer`, then mark-and-help deletion (Herlihy–Shavit). The bottom lane is singly linked or
+     prev-as-hint. Mark via an immutable `{next, marked}` box replaced by CAS (no pointer tagging in Go). Stress tests (+ porcupine).
+  5. Benchmark stages 2–4 against each other.
+  Pitfalls already explained: a Go map isn't concurrency-safe (it breaks lock-freedom, and map and list consistency is hard); a
+  lock-free doubly linked list needs two-pointer updates; `-race` misses lock-free logic bugs. Reading: Pugh 1990; Redis `t_zset.c`;
+  Herlihy & Shavit, *The Art of Multiprocessor Programming*, ch. 14 (skip lists).
+- [ ] **SQ2 B+ tree** (`sidequests/bplustree/`): in-memory generic B+ tree with configurable order. Search, insert (with leaf/internal
+  splits), linked leaves for range scans, then delete (borrow/merge, the hard part, done last). Invariant checker in tests.
+  Stretch: page-based on-disk version. *Link to the course:* the index structure behind most databases (bbolt, InnoDB,
+  SQLite); it's useful background for P11/P12 and the capstone's storage. Reading: *Database Internals* (Petrov) ch. 2–4;
+  CMU 15-445 B+ tree lectures; the `go.etcd.io/bbolt` source.
+
 ---
 
 ## Project Index
@@ -290,6 +316,8 @@ Legend: ⬜ not started · 🟡 in progress · ✅ accepted · ➖ dropped/merge
 | P16 | p16-raft-election | ⬜ | |
 | P17 | p17-raft-log | ⬜ | |
 | CAP | redis-cluster | ⬜ | |
+| SQ1 | sidequests/skiplist | ⬜ | side quest |
+| SQ2 | sidequests/bplustree | ⬜ | side quest |
 
 ---
 
@@ -313,6 +341,7 @@ _(Concepts the user keeps struggling with. Bring them back in katas and reviews 
 _(Dated record of every change to the schedule and why.)_
 
 - 2026-09-29: Plan created.
+- 2026-10-14 (Day 16): Added side quests SQ1 (skip list) and SQ2 (B+ tree). Optional, user-paced, outside the schedule. DSA is de-emphasized, not abandoned.
 - 2026-10-13 (Day 15): Pace rule: fun first and no timeline pressure. Only flag a sustained slowdown, once, as "at the current pace the project is delayed by ~N days".
 - 2026-10-13 (Day 15): **Re-plan, at the user's request.** The rest of the DSA projects were dropped (P02 skip list and P03 dict
   become self-study; P04 TTL is folded into P05 using `Heap[T]`). Phase 1 closed. Phases 2–4 shifted +5 days (Phase 2 = Days
@@ -336,6 +365,13 @@ _(Dated record of every change to the schedule and why.)_
 ## Progress Log
 _(Newest first. One dated line per update: what was done, what was weak, notable review points.)_
 
+- 2026-10-27 (Day 29): SQ1 stage 1 skip list in `katas/day-x-skipList/` (imports their own deque and uses it as a predecessor stack).
+  Correct: passed 20k random operations against a map oracle (in the scratchpad). Issues: tower height unbounded and the `probability` field unused
+  (hard-coded 0.5); `maxLevel` means both cap and current height; the SafeMap mutex protects only the map (false safety);
+  updates take 3 traversals (map is `map[T]struct{}` not `map[K]*node`); no tests yet; doubly linked bottom lane not done.
+  Claude accidentally created a stray copy of the file via a cp typo and removed it right away. **Pace flagged once** (neutrally):
+  Phase 2 not started yet; projected capstone end ~Jan 9 (+13 days). Don't raise it again unless the slip grows a lot more.
+  Learned: local module import paths; imported names need the package prefix.
 - 2026-10-13 (Day 15): **Solved LC 295 (Median from Data Stream)** with their own generic two-heap solution; all tests pass. The logic was correct; the issues were compile-level (duplicate heap in one package, `any` vs `cmp.Ordered`, unpacking `(T, bool)`, int vs float division). Learned: one package per directory.
 - 2026-10-13 (Day 15): The heap tests pass after fixing the `for`-init loop (after three unsaved-file confusions; auto-save recommended). The user wants to skip further DSA and move on to concurrency and `net`, so the course was re-planned.
 - 2026-10-13 (Day 15): Generic `Heap[T]` with tests written first (they skipped LC 703 for now). up/down are correct, and they

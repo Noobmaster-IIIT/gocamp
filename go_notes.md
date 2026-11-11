@@ -15,6 +15,7 @@ collected during lessons.
    - [1.4 I/O helpers](#14-io-helpers)
 2. [Language essentials](#2-language-essentials)
    - [2.1 Composite literals and `struct{}{}`](#21-composite-literals-and-struct)
+   - [2.1.1 Conversion vs composite literal](#211-conversion-tx-vs-composite-literal-t)
    - [2.2 Integer sizes and conversions](#22-integer-sizes-and-conversions)
    - [2.3 Zero values](#23-zero-values)
    - [2.4 Pointers: Go vs C](#24-pointers-go-vs-c)
@@ -225,8 +226,8 @@ fmt.Fprintf(w io.Writer, format, args...) (int, error) // print to any Writer
 ### 1.4 I/O helpers
 
 ```go
-io.ReadAll(r) ([]byte, error)
-io.Copy(dst, src) (int64, error)
+func ReadAll(r io.Reader) ([]byte, error)              // io.ReadAll: accepts ANY Reader
+func Copy(dst io.Writer, src io.Reader) (int64, error) // io.Copy
 os.ReadFile(name) ([]byte, error)
 os.Open(name) (*os.File, error)
 bufio.NewReader(r).ReadString('\n') (string, error)
@@ -273,6 +274,29 @@ seen := map[int]struct{}{}      // literal
 seen := make(map[int]struct{})  // most common
 var seen map[int]struct{}       // ⚠️ nil map: reads work, WRITES PANIC
 ```
+
+### 2.1.1 Conversion `T(x)` vs composite literal `T{...}`
+
+| Syntax | Name | What it does |
+|---|---|---|
+| `T{...}` | composite literal | **builds a new value** from parts: `Point{1, 2}`, `PoliteGreeter{}` |
+| `T(x)` | conversion | takes an **existing** value and gives it type `T`: `float64(n)`, `Celsius(21.5)`, `GreeterFunc(polite)` |
+
+- Allowed when the **underlying types match** (plus numeric ↔ numeric, which changes the bits).
+- **Methods belong to types**, so converting a value to a type that has methods gives the value those methods.
+  `GreeterFunc(polite)` is the same function, but now it has `Greet`.
+- `GreeterFunc{}` doesn't compile: a function has no fields to fill in.
+- **Your own summary (Day 21):** `[]int` / `func(string) string` are unnamed types with **no methods**, so they can't
+  satisfy an interface that has methods (only `any`). `type MyInts []int` / `type GreeterFunc func(string) string` are
+  named types you **can** attach methods to. The conversion tells the compiler "this value is a GreeterFunc now, use its methods".
+- You can only add methods to types **declared in your own package** (not to `int` or `time.Duration`; wrap them instead).
+- Conversions **don't copy**: `MyInts(nums)` shares the backing array, and `GreeterFunc(polite)` is the same function. They're free at runtime.
+- Instead of a function type you can use a struct wrapper (`greeterStruct{fn: polite}`, a composite literal). Use a
+  function type when the behavior is *only* the function, and a struct when you need extra state too.
+- Terminology: in Go, **instantiation** means filling in generic type parameters (`Heap[int]`); `Point{1, 2}` is a
+  **composite literal**.
+- Assignability: `var g GreeterFunc = polite` compiles with no conversion (same underlying type, and one side is
+  unnamed). But `welcome(polite)` fails because `welcome` wants the **interface** `Greeter`, and plain `polite` has no methods.
 
 ### 2.2 Integer sizes and conversions
 
@@ -363,6 +387,10 @@ walk = func(i int) bool { /* ... */ return walk(2*i+1) && walk(2*i+2) }
 - Package names are short and lowercase with no underscores, and usually **match the folder name**.
 - File names are lowercase; underscores are fine, **but some suffixes are special**: `_test.go` marks a test file;
   `_linux.go`, `_darwin.go`, `_windows.go`, `_amd64.go`, `_arm64.go` are build tags that compile only on that OS or CPU.
+
+**Editor vs terminal:** gopls (the editor's Go brain) checks **open tabs as overlays**, even unsaved or deleted ones, while
+`go build`/`go vet` read only **disk**. When they disagree, trust the terminal; then close stale tabs ("Don't Save") or
+run *Go: Restart Language Server*. The reverse also happens: unsaved edits look fine in the editor, but `go test` doesn't see them.
 
 ### 2.5 Visibility is case-sensitive
 
@@ -515,6 +543,129 @@ dump(conn, data)            // net.Conn fits
   instead of a TCP connection.
 
 ---
+
+### Methods on any named type, and the `HandlerFunc` adapter
+
+Any type you define can have methods: `type Celsius float64` with a `String()` method satisfies `fmt.Stringer`.
+**A method on a function type** turns a plain function into an interface value:
+
+```go
+type HandlerFunc func(w ResponseWriter, r *Request)
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) { f(w, r) } // the method calls the function itself
+
+http.Handle("/hi", http.HandlerFunc(hello)) // a CONVERSION (like Celsius(21.5)), not a call
+```
+
+It's an adapter from "plain function" to "interface" (also used for middleware and gRPC interceptors).
+
+A runnable version without HTTP (try it with `go run`):
+
+```go
+type Greeter interface{ Greet(name string) string }
+
+type GreeterFunc func(name string) string               // 1. a NAMED function type
+func (f GreeterFunc) Greet(name string) string { return f(name) } // 2. a method that calls f itself
+
+func welcome(g Greeter) { fmt.Println(g.Greet("Abhirup")) }
+
+welcome(GreeterFunc(func(n string) string { return "yo " + n })) // 3. convert any func → Greeter
+```
+
+- The type must be **named** (methods can't attach to an anonymous `func(...)`).
+- It only makes sense for **one-method** interfaces.
+
+#### "How does a function have a method?" The Celsius vs GreeterFunc comparison
+
+It doesn't. **A method belongs to a TYPE, and receives a value of that type as an ordinary argument.**
+The function is just that value.
+
+**Step 1: a method is a function with an extra first parameter.**
+
+```go
+func (c Celsius) String() string { ... }   // method
+func String(c Celsius) string     { ... }   // plain function: same idea
+```
+
+`temp.String()` is basically `String(temp)`. Go even accepts `Celsius.String(temp)`. **The receiver is just the first argument.**
+
+**Step 2: does the number 21.5 "have" a method?** Not really. It's plain data. The **type** `Celsius` has the method,
+and the number is passed in as `c`. The method does something *with* the number:
+
+```go
+func (c Celsius) String() string { return fmt.Sprint(float64(c)) + "°C" } // uses the number
+```
+
+**Step 3: replace "number" with "function".**
+
+```go
+type GreeterFunc func(string) string
+
+func (f GreeterFunc) Greet(n string) string { return f(n) }
+// is basically:
+func Greet(f GreeterFunc, n string) string  { return f(n) }
+```
+
+Same shape. The **type** `GreeterFunc` has the method; the function value is passed in as `f`. For a number, "using"
+it means arithmetic or formatting. For a function, "using" it means **calling** it, hence `f(n)`.
+
+| | `Celsius` | `GreeterFunc` |
+|---|---|---|
+| The value is | a number (`21.5`) | a function (`func(n string) string {…}`) |
+| The method is attached to | the type `Celsius` | the type `GreeterFunc` |
+| Inside the method, the receiver is | the number `c` | the function `f` |
+| The method uses it by | formatting it | **calling** it: `f(n)` |
+
+The function doesn't contain a method, just as `21.5` doesn't. Go looks up `Greet` on the **type** and passes your
+function in as the receiver. Once the receiver is "just the first argument", a function receiver is no stranger
+than a number receiver.
+
+### The blank identifier `_`
+
+A write-only bin: *"there's a value here and I'm discarding it on purpose."*
+
+- Multiple assignment: `_, ok := m[k]`, `for _, v := range s`, `top, _ := h.Top()`.
+- ⚠️ **Never silently drop an `error`** (`data, _ := os.ReadFile(p)`). If you're sure it can't fail, leave a comment saying why.
+- Unused **imports** and **local variables** are compile errors (on purpose). gopls/goimports fixes imports on save.
+  Unused package-level vars and funcs compile fine; `staticcheck` flags them (U1000).
+- **Import for side effects:** `import _ "net/http/pprof"` runs the package's `init()` without using its names.
+  It's used for pprof endpoints, image decoders (`_ "image/png"`), and database drivers.
+  `func init()` runs automatically before `main`.
+
+### Interface checks
+
+```go
+var _ Deque[int] = (*RingBufferDeque[int])(nil)  // compile time: the build fails here if a method goes missing
+
+if s, ok := v.(fmt.Stringer); ok { s.String() }  // runtime: does this value implement X? (how fmt finds String())
+```
+
+### Embedding
+
+- **Interface embedding** combines method sets: `type ReadWriter interface { Reader; Writer }`.
+- **Struct embedding**: a field with **no name** promotes the inner type's methods to the outer type:
+
+```go
+type Job struct {
+	Command string
+	*log.Logger // the field name is the type name: j.Logger
+}
+j.Println("start") // promoted: really j.Logger.Println
+```
+
+- **Not inheritance:** inside a promoted method, the receiver is still the inner value. It knows nothing about the outer struct.
+- **The outer type wins** on name clashes; the inner method is still reachable via `j.Logger.Println`.
+- Promoted methods count, so the outer type **satisfies the inner type's interfaces** (composition over inheritance).
+- ⚠️ **Don't embed `sync.Mutex`** in exported types: it makes `Lock`/`Unlock` public. Use `mu sync.Mutex` (named, unexported).
+- **What can be embedded:** a named type `T` or `*T` (including interfaces). Not unnamed types (`[]int`) and not `**T`. The field
+  name is the type name, so you can't embed two types with the same name.
+- **Same-depth method clash** (two embedded types both have `Close`) → `s.Close()` is a compile error (ambiguous selector).
+  Call `s.Reader.Close()` explicitly, or define `Close` on the outer type.
+- **Zero values apply recursively.** An embedded **value** is ready if its zero value is useful (`sync.Mutex`, a counter
+  struct). An embedded **pointer** is nil, so calling promoted methods panics until you set it: `Job{Logger: log.New(...)}`.
+  Maps inside embedded structs are still nil maps.
+- **Embedding an interface in a struct** (`struct{ net.Conn }`) makes the struct satisfy the interface. Override only the
+  methods you need; calling the others panics (the embedded value is nil). Used for test fakes and gRPC's `UnimplementedXServer`.
+- **Nil map** = read-only empty: reads, `len`, and `range` work; **writes panic**. Initialize in a constructor, or lazily on first write.
 
 ## 5. Memory and the GC
 
