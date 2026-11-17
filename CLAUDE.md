@@ -167,17 +167,21 @@ Part of gocamp. See ../CLAUDE.md for the course plan and coaching rules.
 
 ## Current Status
 
-- **Today:** Day 29 (2026-10-27). Help tier C (guided).
+- **Today:** Day 50 (2026-11-17). Help tier D (light). **Last Go work: Day 29 (Oct 27), the skip list.** Since then
+  the user's time went to self-study notes (GNN series, math) and the new `devOps-bootCamp` project.
 - **Phase:** 1 (Idiomatic Go and data structures)
 - **Done:** SSH, GitHub account and git identity set up. Repo cloned. The mechanics were explained to the user.
   Go 1.27.1, staticcheck and golangci-lint installed. `go.mod` initialized.
-- **Next up:** start of Day 16. **First, revisit the function-type-with-a-method adapter** (`GreeterFunc` /
-  `http.HandlerFunc`, in go_notes §4). It clicked after the Celsius vs GreeterFunc comparison (go_notes §4).
-  Quick recap only, then have them write their own adapter from scratch (no LLM). Then goroutines, channels, select.
+- **Next up (when the user returns to Go):** finish the skip list leftovers (height cap via `probability`, separate
+  `maxLevel` vs current `level`, tests, optional `map[K]*Node`), OR start **Phase 2: goroutines, channels, select**
+  (Day 16 content) with the quick adapter recap first. Ask which; don't assume.
 - **Already covered:** comma-ok (maps, type assertions), composite literals and `struct{}{}`,
   table-driven tests and `t.Run`, pointer vs value receivers, int sizes and explicit integer conversion.
   (Repeating these is welcome. The user likes seeing them again, so keep bringing them up.)
-- **Schedule:** relaxed; see the pace rule. Re-planned on Day 15. Phase 2 starts Day 16 (Oct 14). The capstone shrinks from 40 to 35 days; the end date (Dec 27) is unchanged.
+- **Mode: HOBBY since 2026-11-17** (the user's main focus is now DevOps). No pace or timeline notes; pick up whenever the user wants.
+- **Schedule:** relaxed (pace rule). **Second neutral pace note given on 2026-11-17:** Phase 2 was due at Day 16 and
+  hasn't started at Day 50, so the projected capstone end is ~2026-01-30 (~+34 days). Don't raise it again unless the user asks.
+  Re-planned on Day 15. Phase 2 starts Day 16 (Oct 14). The capstone shrinks from 40 to 35 days; the end date (Dec 27) is unchanged.
 
 ---
 
@@ -365,6 +369,9 @@ _(Dated record of every change to the schedule and why.)_
 ## Progress Log
 _(Newest first. One dated line per update: what was done, what was weak, notable review points.)_
 
+- 2026-11-17 (Day 50): No Go work since Day 29. Elsewhere: the GNN self-study series Part A (`selfStudy`), the
+  `devOps-bootCamp` project (skills /drill, /quizme, /update-progress), and git lessons (rebase --onto, ls-remote,
+  includeIf, multi-account gh/ssh) captured in devOps-bootCamp/progress-log.md. First git quiz: 4/5.
 - 2026-10-27 (Day 29): SQ1 stage 1 skip list in `katas/day-x-skipList/` (imports their own deque and uses it as a predecessor stack).
   Correct: passed 20k random operations against a map oracle (in the scratchpad). Issues: tower height unbounded and the `probability` field unused
   (hard-coded 0.5); `maxLevel` means both cap and current height; the SafeMap mutex protects only the map (false safety);
